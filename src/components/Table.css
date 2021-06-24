@@ -5,6 +5,18 @@
     color: #6a5d5d;
 }
 
+@media screen and (max-width: 730px) {
+ .table{
+    margin-top: 20px;
+    margin-bottom: 16px;
+    overflow: scroll;
+    height: 400px;
+    color: #6a5d5d;
+}
+}
+
+
+
 .table tr{
     display: flex;
     justify-content: space-between;

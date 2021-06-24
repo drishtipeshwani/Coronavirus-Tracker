@@ -51,6 +51,14 @@ background-color: #f5f6fa;
   justify-content: space-between;
 }
 
+@media (max-width:730px) {
+  .app-stats{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+}
+
 @media (max-width: 990px) {
   .app{
     flex-direction: column;

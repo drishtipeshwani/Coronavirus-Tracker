@@ -1,9 +1,9 @@
 import React from 'react'
 import './App.css'
 import InfoBox from './components/InfoBox'
-import Map from './Map'
-import Table from './Table'
-import LineGraph from './LineGraph'
+import Map from './components/Map'
+import Table from './components/Table'
+import LineGraph from './components/LineGraph'
 import { useState, useEffect } from 'react'
 import { FormControl, Select, MenuItem, Card, CardContent } from '@material-ui/core'
 import axios from 'axios'
@@ -17,7 +17,9 @@ function App() {
   yesterday.setDate(today.getDate() - 1);
   yesterday = yesterday.toLocaleDateString();
   today = today.toLocaleDateString();
-  const VaccineData = [];
+
+  //Assigning all the necessary variables
+
   const [countries, setcountries] = useState([])
   const [country, setcountry] = useState('worldwide')
   const [countryInfo, setcountryInfo] = useState({}) //For covid
@@ -26,10 +28,13 @@ function App() {
   const [casesType, setCasesType] = useState("cases");
   const [currvaccine, setcurrvaccine] = useState(0)
   const [totalvaccine, settotalvaccine] = useState(0)
-  const [mapCenter, setmapCenter] = useState({ lat: 34.80746, lng: -40.4796 })
+  const [mapCenter, setmapCenter] = useState({ lat: 34.80746, lng: -40.4796 }) //This are like the world center co-ordinates
   const [mapCountries, setmapCountries] = useState([])
-  //This are like the world center co-ordinates
+
+
   const [mapZoom, setmapZoom] = useState(3)
+
+  //Getting all the countries data
   useEffect(() => {
     //What you input is very important as this useEffect if input is empty will run once when app is started and not again
     const getCountriesData = async () => {
@@ -50,19 +55,23 @@ function App() {
     getCountriesData();
   }, [])
 
+  //Getting worldwide data for covid-19 cases and vaccination doses administered
+
   useEffect(() => {
     const fetchData = async () => {
       const worldInfo = axios.get('https://disease.sh/v3/covid-19/all');
-      const worldVaccInfo = axios.get('https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=2');
+      const worldVaccInfo = axios.get('https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=3');
       axios.all([worldInfo, worldVaccInfo]).then(axios.spread((...iniData) => {
         setcountryInfo(iniData[0].data);
         setmapZoom(4);
         setvaccineInfo(iniData[1].data);
         let lastPoint;
+        let count = 0;
         for (let date in iniData[1].data) {
-          if (lastPoint) {
+          if (lastPoint && count === 0) {
             let newp = iniData[1].data[date];
             setcurrvaccine(newp - lastPoint);
+            count++;
           }
           lastPoint = iniData[1].data[date];
         }
@@ -72,36 +81,41 @@ function App() {
     fetchData();
   }, [])
 
+  //Getting covid data for particular countries
+
   const onCountryChange = async (event) => {
     const countryCode = event.target.value;
-    console.log(event.target);
     setcountry(event.target.value)
-    //url and vurl are my 2 url
+    //url and vurl are my 2 url for covid cases and vaccination data
     const url = countryCode === 'worldwide' ? 'https://disease.sh/v3/covid-19/all' : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
-    const vurl = countryCode === 'worldwide' ? "https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=2" : `https://disease.sh/v3/covid-19/vaccine/coverage/countries/${countryCode}?lastdays=2`;
+    const vurl = countryCode === 'worldwide' ? "https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=2" : `https://disease.sh/v3/covid-19/vaccine/coverage/countries/${countryCode}?lastdays=3`;
     const getCovidInfo = axios.get(url);
     const getVaccInfo = axios.get(vurl);
+
     axios.all([getCovidInfo, getVaccInfo]).then(axios.spread((...allData) => {
       const covidInfo = allData[0].data
       const covidVInfo = allData[1].data;
       setcountryInfo(covidInfo)
       setvaccineInfo(covidVInfo);
-      console.log(countryInfo)
+
       let lastPoint;
       for (let date in allData[1].data) {
         lastPoint = allData[1].data[date];
       }
       console.log(lastPoint);
-      let p;
+      let presentCount;
+      let count = 0;
+
       for (let item in lastPoint) {
 
-        if (p) {
+        if (presentCount && count === 0) {
           let n = lastPoint[item];
-          setcurrvaccine(n - p);
+          setcurrvaccine(n - presentCount);
+          count++;
         }
-        p = lastPoint[item]
+        presentCount = lastPoint[item]
       }
-      settotalvaccine(p);
+      settotalvaccine(presentCount);
 
     }))
 
@@ -114,7 +128,7 @@ function App() {
     <div className='app'>
       <div className="app-left">
         <div className='app-header'>
-          <h1>Coronavirus Tracker</h1>
+          <h1>Covid-19 Tracker</h1>
           <FormControl className='app-dropdown'>
             <Select variant='outlined' value={country} onChange={onCountryChange}>
               <MenuItem value='worldwide'>Worldwide</MenuItem>
@@ -125,7 +139,7 @@ function App() {
           </FormControl>
         </div>
         <div className='app-stats'>
-          <InfoBox
+          <InfoBox className="stats-box"
             isRed
             active={casesType === 'cases'}
             onClick={e => setCasesType('cases')}
@@ -133,20 +147,21 @@ function App() {
             total={prettyPrintStat(countryInfo.cases)}
             current={prettyPrintStat(countryInfo.todayCases)}
           ></InfoBox>
-          <InfoBox
+          <InfoBox className="stats-box"
             active={casesType === 'recovered'}
             onClick={e => setCasesType('recovered')}
             title="Recovered" total={prettyPrintStat(countryInfo.recovered)} current={prettyPrintStat(countryInfo.todayRecovered)}></InfoBox>
-          <InfoBox
+          <InfoBox className="stats-box"
             isRed
             active={casesType === 'deaths'}
             onClick={e => setCasesType('deaths')}
             title="Deaths" total={prettyPrintStat(countryInfo.deaths)} current={prettyPrintStat(countryInfo.todayDeaths)}></InfoBox>
-          <InfoBox
+          <InfoBox className="stats-box"
             active={casesType === 'vaccines'}
+            onClick={e => setCasesType('vaccines')}
             title="Vaccination Doses" total={prettyPrintStat(totalvaccine)} current={prettyPrintStat(currvaccine)}></InfoBox>
         </div>
-        <Map center={mapCenter} zoom={mapZoom} countries={mapCountries} casesType={casesType}></Map>
+        <Map center={mapCenter} zoom={mapZoom} countries={mapCountries} casesType={casesType} vaccinedoses={totalvaccine}></Map>
       </div>
       <Card className="app-right">
         <CardContent>

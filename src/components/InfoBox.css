@@ -3,6 +3,13 @@
   cursor: pointer;
 }
 
+@media screen and (max-width: 730px) {
+ .info{
+  margin-bottom: 3px;
+  margin-top: 3px;
+}
+}
+
 .info:not(:last-child) {
   margin-right: 10px;
 }

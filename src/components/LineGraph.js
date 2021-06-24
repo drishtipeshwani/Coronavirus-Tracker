@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Line } from "react-chartjs-2";
 import numeral from "numeral";
-import './LineGraph.css'
-import axios from 'axios'
+import './LineGraph.css';
 
 const options = {
     fill: true,
@@ -50,48 +49,67 @@ const options = {
     },
 };
 
+const buildChartData = (data, casesType) => {
+    let chartData = [];
+    let lastDataPoint;
+    if (casesType !== 'vaccines') {
+        for (let date in data.cases) {
+            if (lastDataPoint) {
+                let newDataPoint = {
+                    x: date,
+                    y: data[casesType][date] - lastDataPoint,
+                };
+                chartData.push(newDataPoint);
+            }
+            lastDataPoint = data[casesType][date];
+        }
+    } else {
+        for (let date in data) {
+            if (lastDataPoint) {
+                let newDataPoint = {
+                    x: date,
+                    y: data[date] - lastDataPoint,
+                };
+                chartData.push(newDataPoint);
+            }
+            lastDataPoint = data[date];
+        }
+    }
+    return chartData;
+};
+
 function LineGraph({ casesType, ...props }) {
     const [data, setData] = useState({});
 
-    const buildChartData = (data, casesType, vdata) => {
-        let chartData = [];
-        let lastDataPoint;
-        if (casesType === 'vaccines') {
-            for (let date in vdata.cases) {
-                if (lastDataPoint) {
-                    let newDataPoint = {
-                        x: date,
-                        y: vdata[date] - lastDataPoint,
-                    };
-                    chartData.push(newDataPoint);
-                }
-                lastDataPoint = vdata[date];
-            }
-        } else {
-            for (let date in data.cases) {
-                if (lastDataPoint) {
-                    let newDataPoint = {
-                        x: date,
-                        y: data[casesType][date] - lastDataPoint,
-                    };
-                    chartData.push(newDataPoint);
-                }
-                lastDataPoint = data[casesType][date];
-            }
-        }
-        return chartData;
-    };
     useEffect(() => {
         const fetchData = async () => {
-            const worldInfo = axios.get('https://disease.sh/v3/covid-19/historical/all?lastdays=120');
-            const worldVaccInfo = axios.get('https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=120');
-            axios.all([worldInfo, worldVaccInfo]).then(axios.spread((...iniData) => {
-                let chartData = buildChartData(iniData[0].data, casesType, iniData[1].data);
-                setData(chartData)
-            }))
-        }
+            //Fetching data depending on the type of cases
+            if (casesType !== 'vaccines') {
+                await fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=120")
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        let chartData = buildChartData(data, casesType);
+                        setData(chartData);
+                        // buildChart(chartData);
+                    });
+            } else {
+                await fetch("https://disease.sh/v3/covid-19/vaccine/coverage?lastdays=120&fullData=false")
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        let chartData = buildChartData(data, casesType);
+                        setData(chartData);
+                        // buildChart(chartData);
+                    });
+            }
+        };
+
         fetchData();
     }, [casesType]);
+
 
     return (
         <div className={props.className}>

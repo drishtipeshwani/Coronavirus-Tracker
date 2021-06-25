@@ -4,7 +4,9 @@ Made a tracking application with <b>React</b> that tracks the spread of coronavi
 Used various Javascript libraries like <b>Chart.js</b> and <b>Leaflet.js</b> to present the data in the form of graphs and show the spread on the world map.
 
 # Preview
-<img width="921" alt="2021-04-25" src="https://user-images.githubusercontent.com/65016769/115989969-8d7c7a00-a5de-11eb-90b4-fe4d43862ab5.png">
+![React App - Google Chrome 25-06-2021 15_01_44](https://user-images.githubusercontent.com/65016769/123404774-d1800100-d5c6-11eb-9f6d-f94087d5912d.png)
+
+![React App - Google Chrome 25-06-2021 15_02_28](https://user-images.githubusercontent.com/65016769/123404805-dba1ff80-d5c6-11eb-8e3c-2dd1aeabd0ed.png)
 
 # API Used
 API - <a>https://disease.sh/</a>
